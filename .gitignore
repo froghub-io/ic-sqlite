@@ -1,1 +1,6 @@
-.idea
+*/**/.dfx/
+target/
+*/**/target/
+Cargo.lock
+*/**/Cargo.lock
+.idea/
