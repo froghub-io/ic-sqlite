@@ -22,6 +22,7 @@ lazy_static! {
         conn.execute_batch(
             r#"
             PRAGMA page_size=4096;
+            PRAGMA journal_mode=MEMORY;
             "#,
         ).unwrap();
 
