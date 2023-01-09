@@ -2,11 +2,15 @@ use std::fmt::Debug;
 use std::io::{self, ErrorKind};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
+use ic_cdk::api::stable::{stable64_read, stable64_write};
 
 use sqlite_vfs::{LockKind, OpenKind, OpenOptions, Vfs};
+use crate::{stable_capacity, stable_grow_bytes};
+
+const SQLITE_SIZE_IN_BYTES: u64 = 8; // 8 byte
 
 #[derive(Default)]
-pub struct PagesVfs<const PAGE_SIZE: usize> {
+pub struct PagesVfs {
     lock_state: Arc<Mutex<LockState>>,
 }
 
@@ -16,32 +20,42 @@ struct LockState {
     write: Option<bool>,
 }
 
-pub struct Connection<const PAGE_SIZE: usize> {
-    db_name: String,
-    kind: OpenKind,
+pub struct Connection {
     lock_state: Arc<Mutex<LockState>>,
     lock: LockKind,
 }
 
-impl<const PAGE_SIZE: usize> Vfs for PagesVfs<PAGE_SIZE> {
-    type Handle = Connection<PAGE_SIZE>;
+impl Vfs for PagesVfs {
+    type Handle = Connection;
 
     fn open(&self, db: &str, opts: OpenOptions) -> Result<Self::Handle, std::io::Error> {
+        // Always open the same database for now.
+        if db != "main.db" {
+            return Err(io::Error::new(
+                ErrorKind::NotFound,
+                format!("unexpected database name `{}`; expected `main.db`", db),
+            ));
+        }
+        // Only main databases supported right now (no journal, wal, temporary, ...)
+        if opts.kind != OpenKind::MainDb {
+            return Err(io::Error::new(
+                ErrorKind::PermissionDenied,
+                "only main database supported right now (no journal, wal, ...)",
+            ));
+        }
+
         Ok(Connection {
-            db_name: db.to_string(),
-            kind: opts.kind,
             lock_state: self.lock_state.clone(),
             lock: LockKind::None,
         })
     }
 
-    fn delete(&self, db: &str) -> Result<(), std::io::Error> {
-        crate::del(db.to_string());
+    fn delete(&self, _db: &str) -> Result<(), std::io::Error> {
         Ok(())
     }
 
     fn exists(&self, db: &str) -> Result<bool, std::io::Error> {
-        Ok(db == "main.db" && Connection::<PAGE_SIZE>::page_count() > 0 || crate::exists(db.to_string()))
+        Ok(db == "main.db" && Connection::size() > 0)
     }
 
     fn temporary_name(&self) -> String {
@@ -55,84 +69,33 @@ impl<const PAGE_SIZE: usize> Vfs for PagesVfs<PAGE_SIZE> {
 
     fn sleep(&self, duration: Duration) -> Duration {
         let now = Instant::now();
-        crate::conn_sleep((duration.as_millis() as u32).max(1));
+        conn_sleep((duration.as_millis() as u32).max(1));
         now.elapsed()
     }
 }
 
-impl<const PAGE_SIZE: usize> sqlite_vfs::DatabaseHandle for Connection<PAGE_SIZE> {
+impl sqlite_vfs::DatabaseHandle for Connection {
     type WalIndex = sqlite_vfs::WalDisabled;
 
     fn size(&self) -> Result<u64, io::Error> {
-        if self.kind != OpenKind::MainDb {
-            let data = crate::get(self.db_name.clone());
-            return if let Some(data) = data {
-                Ok(data.len() as u64)
-            } else {
-                Ok(0)
-            }
-        }
-        let size = Self::page_count() * PAGE_SIZE;
-        Ok(size as u64)
+        let size = Self::size();
+        ic_cdk::eprintln!("size: {:?}", size);
+        Ok(Self::size())
     }
 
     fn read_exact_at(&mut self, buf: &mut [u8], offset: u64) -> Result<(), io::Error> {
-        if self.kind != OpenKind::MainDb {
-            let data = crate::get(self.db_name.clone());
-            return if let Some(data) = data {
-                if data.len() > offset as usize + buf.len() {
-                    buf.copy_from_slice(&data[offset as usize..offset as usize + buf.len()]);
-                }
-                Ok(())
-            } else {
-                Err(io::Error::new(
-                    ErrorKind::Other,
-                    format!(
-                        "unexpected write size {}; expected {}",
-                        buf.len(),
-                        0
-                    ),
-                ))
-            }
+        ic_cdk::eprintln!("read offset: {:?} buf_len: {:?}", offset, buf.len());
+        if stable_capacity() > 0 {
+            let offset = offset + SQLITE_SIZE_IN_BYTES;
+            stable64_read(offset, buf);
         }
-        let index = offset as usize / PAGE_SIZE;
-        let offset = offset as usize % PAGE_SIZE;
-
-        let data = Self::get_page(index as u32);
-        if data.len() < buf.len() + offset {
-            return Err(ErrorKind::UnexpectedEof.into());
-        }
-
-        buf.copy_from_slice(&data[offset..offset + buf.len()]);
-
         Ok(())
     }
 
     fn write_all_at(&mut self, buf: &[u8], offset: u64) -> Result<(), io::Error> {
-        if self.kind != OpenKind::MainDb {
-            crate::put(self.db_name.clone(), hex::encode(buf));
-            return Ok(())
-        }
-        if offset as usize % PAGE_SIZE > 0 {
-            return Err(io::Error::new(
-                ErrorKind::Other,
-                "unexpected write across page boundaries",
-            ));
-        }
-
-        let index = offset as usize / PAGE_SIZE;
-        let page = buf.try_into().map_err(|_| {
-            io::Error::new(
-                ErrorKind::Other,
-                format!(
-                    "unexpected write size {}; expected {}",
-                    buf.len(),
-                    PAGE_SIZE
-                ),
-            )
-        })?;
-        Self::put_page(index as u32, &page);
-
+        ic_cdk::eprintln!("write offset: {:?} buf_len: {:?}", offset, buf.len());
+        let offset = offset + SQLITE_SIZE_IN_BYTES;
+        stable64_write(offset, buf);
         Ok(())
     }
 
@@ -142,22 +105,17 @@ impl<const PAGE_SIZE: usize> sqlite_vfs::DatabaseHandle for Connection<PAGE_SIZE
     }
 
     fn set_len(&mut self, size: u64) -> Result<(), io::Error> {
-        if self.kind != OpenKind::MainDb {
-            crate::set_len(self.db_name.clone(), size);
-            return Ok(())
+        ic_cdk::eprintln!("set_len: {:?}", size);
+        let capacity = if stable_capacity() == 0 { 0 } else { stable_capacity() - SQLITE_SIZE_IN_BYTES };
+        if size > capacity {
+            stable_grow_bytes(size - capacity).map_err(|err| {
+                io::Error::new(
+                    ErrorKind::OutOfMemory,
+                    err,
+                )
+            })?;
+            stable64_write(0, &size.to_be_bytes());
         }
-        let mut page_count = size as usize / PAGE_SIZE;
-        if size as usize % PAGE_SIZE > 0 {
-            page_count += 1;
-        }
-
-        let current_page_count = Self::page_count();
-        if page_count > 0 && page_count < current_page_count {
-            for i in (page_count..current_page_count).into_iter().rev() {
-                Self::del_page(i as u32);
-            }
-        }
-
         Ok(())
     }
 
@@ -174,42 +132,19 @@ impl<const PAGE_SIZE: usize> sqlite_vfs::DatabaseHandle for Connection<PAGE_SIZE
         Ok(self.lock)
     }
 
-    fn set_chunk_size(&self, chunk_size: usize) -> Result<(), io::Error> {
-        if self.kind != OpenKind::MainDb {
-            return Ok(())
-        }
-        if chunk_size != PAGE_SIZE {
-            Err(io::Error::new(
-                ErrorKind::Other,
-                "changing chunk size is not allowed",
-            ))
-        } else {
-            Ok(())
-        }
-    }
-
     fn wal_index(&self, _readonly: bool) -> Result<Self::WalIndex, io::Error> {
         Ok(sqlite_vfs::WalDisabled::default())
     }
 }
 
-impl<const PAGE_SIZE: usize> Connection<PAGE_SIZE> {
-    fn get_page(ix: u32) -> [u8; PAGE_SIZE] {
-        let mut data = [0u8; PAGE_SIZE];
-        crate::get_page(ix, &mut data);
-        data
-    }
-
-    fn put_page(ix: u32, data: &[u8; PAGE_SIZE]) {
-        crate::put_page(ix, hex::encode(data));
-    }
-
-    fn del_page(ix: u32) {
-        crate::del_page(ix);
-    }
-
-    fn page_count() -> usize {
-        crate::page_count() as usize
+impl Connection {
+    fn size() -> u64 {
+        if stable_capacity() == 0 {
+            return 0;
+        }
+        let mut buf = [0u8; SQLITE_SIZE_IN_BYTES as usize];
+        stable64_read(0, &mut buf);
+        u64::from_be_bytes(buf)
     }
 
     fn lock(&mut self, to: LockKind) -> bool {
@@ -295,10 +230,14 @@ impl<const PAGE_SIZE: usize> Connection<PAGE_SIZE> {
     }
 }
 
-impl<const PAGE_SIZE: usize> Drop for Connection<PAGE_SIZE> {
+impl Drop for Connection {
     fn drop(&mut self) {
         if self.lock != LockKind::None {
             self.lock(LockKind::None);
         }
     }
+}
+
+fn conn_sleep(ms: u32) {
+    std::thread::sleep(Duration::from_secs(ms.into()));
 }
