@@ -28,7 +28,7 @@ pub struct Connection {
 impl Vfs for PagesVfs {
     type Handle = Connection;
 
-    fn open(&self, db: &str, opts: OpenOptions) -> Result<Self::Handle, std::io::Error> {
+    fn open(&self, db: &str, opts: OpenOptions) -> Result<Self::Handle, io::Error> {
         // Always open the same database for now.
         if db != "main.db" {
             return Err(io::Error::new(
@@ -50,11 +50,11 @@ impl Vfs for PagesVfs {
         })
     }
 
-    fn delete(&self, _db: &str) -> Result<(), std::io::Error> {
+    fn delete(&self, _db: &str) -> Result<(), io::Error> {
         Ok(())
     }
 
-    fn exists(&self, db: &str) -> Result<bool, std::io::Error> {
+    fn exists(&self, db: &str) -> Result<bool, io::Error> {
         Ok(db == "main.db" && Connection::size() > 0)
     }
 
