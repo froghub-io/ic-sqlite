@@ -3,22 +3,8 @@ extern crate ic_cdk_macros;
 #[macro_use]
 extern crate serde;
 
-use std::collections::HashMap;
-use ic_cdk::storage;
 use ic_cdk::api::call::RejectionCode;
 use candid::CandidType;
-
-#[pre_upgrade]
-fn pre_upgrade() {
-    let state = ic_sqlite::get_storage();
-    storage::stable_save((state,)).unwrap();
-}
-
-#[post_upgrade]
-fn post_upgrade() {
-    let (s,): (HashMap<String, String>,) = storage::stable_restore().unwrap();
-    ic_sqlite::set_storage(s);
-}
 
 #[update]
 fn create() -> Result {
@@ -36,6 +22,56 @@ fn create() -> Result {
     }
 }
 
+#[query]
+fn query(params: QueryParams) -> Result {
+    let conn = ic_sqlite::CONN.lock().unwrap();
+    let mut stmt = match conn.prepare("select * from person limit ?1 offset ?2") {
+        Ok(e) => e,
+        Err(err) => return Err(Error::CanisterError {message: format!("{:?}", err) })
+    };
+    let person_iter = match stmt.query_map((params.limit, params.offset), |row| {
+        Ok(PersonQuery {
+            id: row.get(0).unwrap(),
+            name: row.get(1).unwrap(),
+            age: row.get(2).unwrap(),
+        })
+    }) {
+        Ok(e) => e,
+        Err(err) => return Err(Error::CanisterError {message: format!("{:?}", err) })
+    };
+    let mut persons = Vec::new();
+    for person in person_iter {
+        persons.push(person.unwrap());
+    }
+    let res = serde_json::to_string(&persons).unwrap();
+    Ok(res)
+}
+
+#[query]
+fn query_filter(params: FilterParams) -> Result {
+    let conn = ic_sqlite::CONN.lock().unwrap();
+    let mut stmt = match conn.prepare("select * from person where name=?1") {
+        Ok(e) => e,
+        Err(err) => return Err(Error::CanisterError {message: format!("{:?}", err) })
+    };
+    let person_iter = match stmt.query_map((params.name, ), |row| {
+        Ok(PersonQuery {
+            id: row.get(0).unwrap(),
+            name: row.get(1).unwrap(),
+            age: row.get(2).unwrap(),
+        })
+    }) {
+        Ok(e) => e,
+        Err(err) => return Err(Error::CanisterError {message: format!("{:?}", err) })
+    };
+    let mut persons = Vec::new();
+    for person in person_iter {
+        persons.push(person.unwrap());
+    }
+    let res = serde_json::to_string(&persons).unwrap();
+    Ok(res)
+}
+
 #[update]
 fn insert(person: Person) -> Result {
     let conn = ic_sqlite::CONN.lock().unwrap();
@@ -48,62 +84,24 @@ fn insert(person: Person) -> Result {
     }
 }
 
-#[query]
-fn query_row() -> Result {
-    let conn = ic_sqlite::CONN.lock().unwrap();
-    let mut stmt = match conn.prepare("select * from person") {
-        Ok(e) => e,
-        Err(err) => return Err(Error::CanisterError {message: format!("{:?}", err) })
-    };
-    let person_iter = match stmt.query_map((), |row| {
-        Ok(PersonQuery {
-            id: row.get(0).unwrap(),
-            name: row.get(1).unwrap(),
-            age: row.get(2).unwrap(),
-        })
-    }) {
-        Ok(e) => e,
-        Err(err) => return Err(Error::CanisterError {message: format!("{:?}", err) })
-    };
-    let mut persons = Vec::new();
-    for person in person_iter {
-        persons.push(person.unwrap());
-    }
-    let res = serde_json::to_string(&persons).unwrap();
-    Ok(res)
-}
-
-#[query]
-fn query_filter(filter: Filter) -> Result {
-    let conn = ic_sqlite::CONN.lock().unwrap();
-    let mut stmt = match conn.prepare("select * from person where name like ?1") {
-        Ok(e) => e,
-        Err(err) => return Err(Error::CanisterError {message: format!("{:?}", err) })
-    };
-    let person_iter = match stmt.query_map((filter.name, ), |row| {
-        Ok(PersonQuery {
-            id: row.get(0).unwrap(),
-            name: row.get(1).unwrap(),
-            age: row.get(2).unwrap(),
-        })
-    }) {
-        Ok(e) => e,
-        Err(err) => return Err(Error::CanisterError {message: format!("{:?}", err) })
-    };
-    let mut persons = Vec::new();
-    for person in person_iter {
-        persons.push(person.unwrap());
-    }
-    let res = serde_json::to_string(&persons).unwrap();
-    Ok(res)
-}
-
 #[update]
 fn delete(id: usize) -> Result {
     let conn = ic_sqlite::CONN.lock().unwrap();
     return match conn.execute(
         "delete from person where id=?1",
         (id,)
+    ) {
+        Ok(e) => Ok(format!("{:?}", e)),
+        Err(err) => Err(Error::CanisterError {message: format!("{:?}", err) })
+    }
+}
+
+#[update]
+fn update(params: UpdateParams) -> Result {
+    let conn = ic_sqlite::CONN.lock().unwrap();
+    return match conn.execute(
+        "update person set name=?1 where id=?2",
+        (params.name, params.id)
     ) {
         Ok(e) => Ok(format!("{:?}", e)),
         Err(err) => Err(Error::CanisterError {message: format!("{:?}", err) })
@@ -124,9 +122,22 @@ struct PersonQuery {
 }
 
 #[derive(CandidType, Debug, Serialize, Deserialize, Default)]
-struct Filter {
+struct QueryParams {
+    limit: usize,
+    offset: usize,
+}
+
+#[derive(CandidType, Debug, Serialize, Deserialize, Default)]
+struct FilterParams {
     name: String,
 }
+
+#[derive(CandidType, Debug, Serialize, Deserialize, Default)]
+struct UpdateParams {
+    id: usize,
+    name: String
+}
+
 
 #[derive(CandidType, Deserialize)]
 enum Error {

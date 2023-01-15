@@ -15,20 +15,25 @@ type Person = record {
     age: nat64
 };
 
-type PersonQuery = record {
-    id: nat64;
-    name: text;
-    age: nat64
+type QueryParams = record {
+    limit: nat64;
+    offset: nat64;
 };
 
-type Filter = record {
+type FilterParams = record {
     name: text
-}
+};
+
+type UpdateParams = record {
+    id: nat64;
+    name: text;
+};
 
 service : {
     "create": () -> (Result);
+    "query": (QueryParams) -> (Result) query;
+    "query_filter": (FilterParams) -> (Result) query;
     "insert": (Person) -> (Result);
-    "query_row": () -> (Result) query;
-    "query_filter": (Filter) -> (Result) query;
     "delete": (nat64) -> (Result);
+    "update": (UpdateParams) -> (Result);
 }
