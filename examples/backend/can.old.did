@@ -10,17 +10,35 @@ type Result = variant {
     Err : Error;
 };
 
-type Person = record {
-    name: text;
-    age: nat64
+type Filter = record {
+    limit: nat64;
+    offset : nat64;
 };
 
-type Filter = record {
-    name: text
+type CountTable = record {
+    table_name: text;
+};
+
+type TableAndId = record {
+    table_name: text;
+    id: nat64
 }
 
 service : {
-    "create": () -> (Result);
-    "insert": (Person) -> (Result);
-    "query_row": (Filter) -> (Result) query;
+    "balance": () -> (nat64) query;
+    "instruction_counter": () -> (nat64) query;
+    "performance_counter": () -> (nat64) query;
+    "test": () -> (nat64);
+    "execute": (text) -> (Result);
+    "insert_course": (text, nat64) -> (Result);
+    "insert_subject": (nat64, nat64) -> (Result);
+    "insert_student": (nat64, nat64, nat64, nat64) -> (Result);
+    "count": (CountTable) -> (Result) query;
+    "query_course": () -> (Result) query;
+    "query_subject": (Filter) -> (Result) query;
+    "query_student": (Filter) -> (Result) query;
+    "query_student_by_id": (nat64) -> (Result) query;
+    "update_student_name_by_id": (nat64, text) -> (Result);
+    "statistics_student_number_in_subject": (nat64) -> (Result) query;
+    "delete": (TableAndId) -> (Result);
 }

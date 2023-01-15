@@ -17,5 +17,9 @@ Limited by the total number of cycles of a call, if the number of rows retrieved
 
 ![report.png](https://github.com/froghub-io/ic-sqlite/blob/main/examples/static/report.png)
 
+## Optimization and Used
+
+* 
+
 
 ## [IC Canister Simple example usage](https://github.com/froghub-io/ic-sqlite/tree/main/examples/backend)
