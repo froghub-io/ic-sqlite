@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use std::io::{self, ErrorKind};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
-use ic_cdk::api::stable::{stable64_read, stable64_write};
+use ic_cdk::api::stable::{stable64_read, stable64_size, stable64_write};
 
 use sqlite_vfs::{LockKind, OpenKind, OpenOptions, Vfs};
 use crate::{stable_capacity, stable_grow_bytes};
@@ -86,16 +86,18 @@ impl sqlite_vfs::DatabaseHandle for Connection {
     fn read_exact_at(&mut self, buf: &mut [u8], offset: u64) -> Result<(), io::Error> {
         ic_cdk::eprintln!("read offset: {:?} buf_len: {:?}", offset, buf.len());
         if stable_capacity() > 0 {
-            let offset = offset + SQLITE_SIZE_IN_BYTES;
-            stable64_read(offset, buf);
+            stable64_read(offset + SQLITE_SIZE_IN_BYTES, buf);
         }
         Ok(())
     }
 
     fn write_all_at(&mut self, buf: &[u8], offset: u64) -> Result<(), io::Error> {
         ic_cdk::eprintln!("write offset: {:?} buf_len: {:?}", offset, buf.len());
-        let offset = offset + SQLITE_SIZE_IN_BYTES;
-        stable64_write(offset, buf);
+        let size = offset + buf.len() as u64;
+        if size > Self::size() {
+            stable64_write(0, &size.to_be_bytes());
+        }
+        stable64_write(offset + SQLITE_SIZE_IN_BYTES, buf);
         Ok(())
     }
 
@@ -105,8 +107,8 @@ impl sqlite_vfs::DatabaseHandle for Connection {
     }
 
     fn set_len(&mut self, size: u64) -> Result<(), io::Error> {
-        ic_cdk::eprintln!("set_len: {:?}", size);
         let capacity = if stable_capacity() == 0 { 0 } else { stable_capacity() - SQLITE_SIZE_IN_BYTES };
+        ic_cdk::eprintln!("size: {:?} capacity: {:?}", size, capacity);
         if size > capacity {
             stable_grow_bytes(size - capacity).map_err(|err| {
                 io::Error::new(
@@ -139,7 +141,7 @@ impl sqlite_vfs::DatabaseHandle for Connection {
 
 impl Connection {
     fn size() -> u64 {
-        if stable_capacity() == 0 {
+        if stable64_size() == 0 {
             return 0;
         }
         let mut buf = [0u8; SQLITE_SIZE_IN_BYTES as usize];
