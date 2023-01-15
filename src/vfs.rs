@@ -1,4 +1,3 @@
-use std::fmt::Debug;
 use std::io::{self, ErrorKind};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
