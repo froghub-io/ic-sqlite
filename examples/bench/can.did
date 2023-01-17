@@ -1,0 +1,25 @@
+type Error = variant {
+    InvalidCanister;
+    CanisterError : record {
+        message : text;
+    };
+};
+
+type Result = variant {
+    Ok: text;
+    Err : Error;
+};
+
+service : {
+    "execute": (text) -> (Result);
+    "count": (text) -> (Result);
+    "bench1_insert_person": (nat64, nat64) -> (Result);
+    "bench1_insert_person_one": (nat64) -> (Result);
+    "bench1_query_person_by_id": (nat64) -> (Result);
+    "bench1_query_person_by_name": (nat64) -> (Result);
+    "bench1_query_person_by_like_name": (nat64) -> (Result);
+    "bench1_query_person_by_limit_offset": (nat64, nat64) -> (Result);
+    "bench1_update_person_by_id": (nat64) -> (Result);
+    "bench1_update_person_by_name": (nat64) -> (Result);
+    "bench1_delete_person_by_id": (nat64) -> (Result);
+}
