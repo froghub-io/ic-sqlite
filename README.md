@@ -9,7 +9,7 @@ In your Cargo.toml:
 
 ```toml
 [dependencies]
-ic-sqlite = { git = "https://github.com/froghub-io/ic-sqlite.git", version = "0.1.0" }
+ic-sqlite = "0.1.0"
 ```
 
 ## Limitations & Suggestions
