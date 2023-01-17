@@ -22,4 +22,13 @@ service : {
     "bench1_update_person_by_id": (nat64) -> (Result);
     "bench1_update_person_by_name": (nat64) -> (Result);
     "bench1_delete_person_by_id": (nat64) -> (Result);
+    "bench2_insert_person2": (nat64, nat64) -> (Result);
+    "bench2_insert_person2_one": (nat64) -> (Result);
+    "bench2_query_person2_by_id": (nat64) -> (Result);
+    "bench2_query_person2_by_name": (nat64) -> (Result);
+    "bench2_query_person2_by_like_name": (nat64) -> (Result);
+    "bench2_query_person2_by_limit_offset": (nat64, nat64) -> (Result);
+    "bench2_update_person2_by_id": (nat64) -> (Result);
+    "bench2_update_person2_by_name": (nat64) -> (Result);
+    "bench2_delete_person2_by_id": (nat64) -> (Result);
 }

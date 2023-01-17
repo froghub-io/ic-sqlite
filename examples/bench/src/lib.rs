@@ -216,12 +216,206 @@ fn bench1_delete_person_by_id(offset: usize) -> Result {
     }
 }
 
+#[update]
+fn bench2_insert_person2(offset: usize, count: usize) -> Result {
+    let conn = ic_sqlite::CONN.lock().unwrap();
+    for i in 0..count {
+        let id = offset + i + 1;
+        let data = "0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a";
+        match conn.execute(
+            "insert into person2 (name, age, gender, data) values (?1, ?2, ?3, ?4);",
+            (format!("person2{:?}", id), 18 + id % 10, id % 2, &data)
+        ) {
+            Ok(_) => {},
+            Err(err) =>  return Err(Error::CanisterError {message: format!("bench2_insert_person2: {:?}", err) })
+        }
+    }
+    Ok(String::from("bench2_insert_person2 OK"))
+}
+
+#[update]
+fn bench2_insert_person2_one(offset: usize) -> Result {
+    let conn = ic_sqlite::CONN.lock().unwrap();
+    let id = offset + 1;
+    let data = "0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a";
+    match conn.execute(
+        "insert into person2 (name, age, gender, data) values (?1, ?2, ?3, ?4);",
+        (format!("person2{:?}", id), 18 + id % 10, id % 2, &data)
+    ) {
+        Ok(_) => Ok(format!("insert performance_counter: {:?}", ic_cdk::api::performance_counter(0))),
+        Err(err) => Err(Error::CanisterError {message: format!("insert: {:?}", err) })
+    }
+}
+
+#[query]
+fn bench2_query_person2_by_id(offset: usize) -> Result {
+    let conn = ic_sqlite::CONN.lock().unwrap();
+    let id = offset + 1;
+    let mut stmt = match conn.prepare("select * from person2 where id=?1") {
+        Ok(e) => e,
+        Err(err) => return Err(Error::CanisterError {message: format!("query_by_id: {:?}", err) })
+    };
+    let iter = match stmt.query_map((id,), |row| {
+        Ok(Person2 {
+            id: row.get(0).unwrap(),
+            name: row.get(1).unwrap(),
+            age: row.get(2).unwrap(),
+            gender: row.get(3).unwrap(),
+            data: row.get(4).unwrap()
+        })
+    }) {
+        Ok(e) => e,
+        Err(err) => return Err(Error::CanisterError {message: format!("query_by_id: {:?}", err) })
+    };
+    let mut arr = Vec::new();
+    for ite in iter {
+        arr.push(ite.unwrap());
+    }
+    let res = serde_json::to_string(&arr).unwrap();
+    ic_cdk::eprintln!("query_by_id: {:?}", res);
+    Ok(format!("query_by_id performance_counter: {:?}", ic_cdk::api::performance_counter(0)))
+}
+
+#[query]
+fn bench2_query_person2_by_name(offset: usize) -> Result {
+    let conn = ic_sqlite::CONN.lock().unwrap();
+    let name = format!("person2{:?}", offset + 1);
+    let mut stmt = match conn.prepare("select * from person2 where name=?1") {
+        Ok(e) => e,
+        Err(err) => return Err(Error::CanisterError {message: format!("query_by_name: {:?}", err) })
+    };
+    let iter = match stmt.query_map((name,), |row| {
+        Ok(Person2 {
+            id: row.get(0).unwrap(),
+            name: row.get(1).unwrap(),
+            age: row.get(2).unwrap(),
+            gender: row.get(3).unwrap(),
+            data: row.get(4).unwrap()
+        })
+    }) {
+        Ok(e) => e,
+        Err(err) => return Err(Error::CanisterError {message: format!("query_by_name: {:?}", err) })
+    };
+    let mut arr = Vec::new();
+    for ite in iter {
+        arr.push(ite.unwrap());
+    }
+    let res = serde_json::to_string(&arr).unwrap();
+    ic_cdk::eprintln!("query_by_name: {:?}", res);
+    Ok(format!("query_by_name performance_counter: {:?}", ic_cdk::api::performance_counter(0)))
+}
+
+#[query]
+fn bench2_query_person2_by_like_name(offset: usize) -> Result {
+    let conn = ic_sqlite::CONN.lock().unwrap();
+    let name = format!("person2{:?}", offset + 1);
+    let mut stmt = match conn.prepare("select * from person2 where name like ?1") {
+        Ok(e) => e,
+        Err(err) => return Err(Error::CanisterError {message: format!("{:?}", err) })
+    };
+    let iter = match stmt.query_map((format!("{:?}%", name),), |row| {
+        Ok(Person2 {
+            id: row.get(0).unwrap(),
+            name: row.get(1).unwrap(),
+            age: row.get(2).unwrap(),
+            gender: row.get(3).unwrap(),
+            data: row.get(4).unwrap()
+        })
+    }) {
+        Ok(e) => e,
+        Err(err) => return Err(Error::CanisterError {message: format!("{:?}", err) })
+    };
+    let mut arr = Vec::new();
+    for ite in iter {
+        arr.push(ite.unwrap());
+    }
+    let res = serde_json::to_string(&arr).unwrap();
+    ic_cdk::eprintln!("query_by_like_name: {:?}", res);
+    Ok(format!("query_by_like_name performance_counter: {:?}", ic_cdk::api::performance_counter(0)))
+}
+
+#[query]
+fn bench2_query_person2_by_limit_offset(limit: usize, offset: usize) -> Result {
+    let conn = ic_sqlite::CONN.lock().unwrap();
+    let mut stmt = match conn.prepare("select * from person2 limit ?1 offset ?2") {
+        Ok(e) => e,
+        Err(err) => return Err(Error::CanisterError {message: format!("query_by_limit_offset: {:?}", err) })
+    };
+    let iter = match stmt.query_map((limit, offset), |row| {
+        Ok(Person2 {
+            id: row.get(0).unwrap(),
+            name: row.get(1).unwrap(),
+            age: row.get(2).unwrap(),
+            gender: row.get(3).unwrap(),
+            data: row.get(4).unwrap()
+        })
+    }) {
+        Ok(e) => e,
+        Err(err) => return Err(Error::CanisterError {message: format!("query_by_limit_offset: {:?}", err) })
+    };
+    let mut arr = Vec::new();
+    for ite in iter {
+        arr.push(ite.unwrap());
+    }
+    let res = serde_json::to_string(&arr).unwrap();
+    ic_cdk::eprintln!("query_by_limit_offset: {:?}", res);
+    Ok(format!("query_by_limit_offset performance_counter: {:?}", ic_cdk::api::performance_counter(0)))
+}
+
+#[update]
+fn bench2_update_person2_by_id(offset: usize) -> Result {
+    let conn = ic_sqlite::CONN.lock().unwrap();
+    let id = offset + 1;
+    return match conn.execute(
+        "update person2 set name=?1 where id=?2",
+        (String::from("person2_id"), id)
+    ) {
+        Ok(_) => Ok(format!("update_by_id performance_counter: {:?}", ic_cdk::api::performance_counter(0))),
+        Err(err) => Err(Error::CanisterError {message: format!("{:?}", err) })
+    }
+}
+
+#[update]
+fn bench2_update_person2_by_name(offset: usize) -> Result {
+    let conn = ic_sqlite::CONN.lock().unwrap();
+    let name = format!("{:?}", offset + 1);
+    return match conn.execute(
+        "update person2 set name=?1 where name=?2",
+        (String::from("person2_name"), name)
+    ) {
+        Ok(_) => Ok(format!("update_by_name performance_counter: {:?}", ic_cdk::api::performance_counter(0))),
+        Err(err) => Err(Error::CanisterError {message: format!("update_by_name: {:?}", err) })
+    }
+}
+
+#[update]
+fn bench2_delete_person2_by_id(offset: usize) -> Result {
+    let conn = ic_sqlite::CONN.lock().unwrap();
+    let id = offset + 1;
+    return match conn.execute(
+        "delete from person2 where id=?1",
+        (id,)
+    ) {
+        Ok(_) => Ok(format!("delete performance_counter: {:?}", ic_cdk::api::performance_counter(0))),
+        Err(err) => Err(Error::CanisterError {message: format!("delete: {:?}", err) })
+    }
+}
+
 #[derive(CandidType, Debug, Serialize, Deserialize, Default)]
 struct Person {
     id: u64,
     name: String,
     age: u32,
     gender: u8
+}
+
+#[derive(CandidType, Debug, Serialize, Deserialize, Default)]
+struct Person2 {
+    id: u64,
+    name: String,
+    age: u32,
+    gender: u8,
+    data: String,
 }
 
 #[derive(CandidType, Deserialize)]

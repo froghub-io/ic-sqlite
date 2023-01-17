@@ -30,4 +30,5 @@ dfx deploy
 Run bench scripts
 ```sh
 bash bench1.sh
+bash bench2.sh
 ```

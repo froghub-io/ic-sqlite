@@ -150,9 +150,6 @@ impl Connection {
 
         let mut lock_state = self.lock_state.lock().unwrap();
 
-        // The following locking implementation is probably not sound (wouldn't be surprised if it
-        // potentially dead-locks), but suffice for the experiment.
-
         match to {
             LockKind::None => {
                 if self.lock == LockKind::Shared {
