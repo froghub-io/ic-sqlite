@@ -36,3 +36,8 @@ Limited by the total number of cycles of a call, if the number of rows retrieved
 | delete <br/> (where primary key) | 429190                                         | 259541                                          | 419615                                          | 423064                                           |
 
 ## [IC Canister Simple example usage](https://github.com/froghub-io/ic-sqlite/tree/main/examples/backend)
+
+## Data migration suggestions & Debugging
+* Provide an interface for executing sql statements with super-management authority
+* Export standard sql statements for offline data and upload in batches
+* Debugging Get the data by running the sql statement through the super-management interface
