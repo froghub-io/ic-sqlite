@@ -1,0 +1,21 @@
+type Error = variant {
+    InvalidCanister;
+    CanisterError : record {
+        message : text;
+    };
+};
+
+type Result = variant {
+    Ok: text;
+    Err : Error;
+};
+
+type QueryResult = variant {
+    Ok: vec vec text;
+    Err : Error;
+};
+
+service : {
+    "execute": (text) -> (Result);
+    "query": (text) -> (QueryResult) query;
+}
