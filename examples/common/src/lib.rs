@@ -7,6 +7,16 @@ use ic_cdk::api::call::RejectionCode;
 use candid::CandidType;
 use rusqlite::types::Type;
 
+#[query]
+fn balance() -> u64 {
+    ic_cdk::api::canister_balance()
+}
+
+#[query]
+fn instruction_counter() -> u64 {
+    ic_cdk::api::instruction_counter()
+}
+
 #[update]
 fn execute(sql: String) -> Result {
     let conn = ic_sqlite::CONN.lock().unwrap();

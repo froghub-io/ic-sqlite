@@ -16,6 +16,8 @@ type QueryResult = variant {
 };
 
 service : {
+    "balance": () -> (nat64);
+    "instruction_counter": () -> (nat64);
     "execute": (text) -> (Result);
     "query": (text) -> (QueryResult) query;
 }
